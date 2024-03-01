@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox, QGridLayout, QPu
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QFont
 import subprocess
+import pkg_resources
 import os
 
 os.environ["XDG_SESSION_TYPE"] = "xcb"
@@ -15,7 +16,8 @@ class CPUCoresController(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle('CPU Cores Controller v1.0')
+        icon_path = pkg_resources.resource_filename(__name__, 'cpu.png')
+        self.setWindowTitle('CPU Cores Controller')
         self.setMinimumSize(500, 500)  # Adjusted minimum size for a more spacious design
 
         # Dynamically determine the number of CPU cores
@@ -27,7 +29,7 @@ class CPUCoresController(QWidget):
         for core in range(num_cores):
             button = QPushButton()
             button.setCheckable(True)
-            button.setIcon(QIcon('cpu.png'))  # Replace with the path to your icon
+            button.setIcon(QIcon(icon_path))  # Replace with the path to your icon
             button.setIconSize(QSize(64, 64))  # Adjust the icon size
             button.clicked.connect(lambda _, core=core: self.toggle_core(core))
 
