@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.9'
+VERSION = '0.1.0'
 DESCRIPTION = 'Turn on/off CPU cores in Linux'
 LONG_DESCRIPTION = 'A package that allows you to turn on/off CPU cores in Linux to increase battery life'
 
