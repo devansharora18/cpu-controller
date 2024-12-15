@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox, QGridLayout, QPushButton, QLabel, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox, QGridLayout, QPushButton, QLabel, QVBoxLayout, QInputDialog, QHBoxLayout
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QFont
 import subprocess
@@ -18,15 +18,33 @@ class CPUCoresController(QWidget):
     def init_ui(self):
         icon_path = pkg_resources.resource_filename(__name__, 'cpu.png')
         self.setWindowTitle('CPU Cores Controller')
-        self.setMinimumSize(500, 500)  # Adjusted minimum size for a more spacious design
+        self.setMinimumSize(600, 600)
 
         # Dynamically determine the number of CPU cores
-        num_cores = os.cpu_count() or 1
+        self.num_cores = os.cpu_count() or 1
 
-        self.layout = QGridLayout()
+        self.layout = QVBoxLayout()
+
+        # Create the range control buttons (Disable and Enable Range)
+        self.range_control_layout = QHBoxLayout()
+        self.disable_range_button = QPushButton("Disable Range")
+        self.disable_range_button.setFont(QFont('Arial', 12, QFont.Weight.Bold))
+        self.disable_range_button.clicked.connect(self.disable_range)
+        
+        self.enable_range_button = QPushButton("Enable Range")
+        self.enable_range_button.setFont(QFont('Arial', 12, QFont.Weight.Bold))
+        self.enable_range_button.clicked.connect(self.enable_range)
+
+        self.range_control_layout.addWidget(self.disable_range_button)
+        self.range_control_layout.addWidget(self.enable_range_button)
+        
+        self.layout.addLayout(self.range_control_layout)
+
+        # Create the grid layout for CPU core buttons
+        self.grid_layout = QGridLayout()
 
         self.core_buttons = []
-        for core in range(num_cores):
+        for core in range(self.num_cores):
             button = QPushButton()
             button.setCheckable(True)
             button.setIcon(QIcon(icon_path))  # Replace with the path to your icon
@@ -45,9 +63,10 @@ class CPUCoresController(QWidget):
             container_layout.addWidget(label)
             container_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            self.layout.addWidget(container, core // 4, core % 4)
+            self.grid_layout.addWidget(container, core // 4, core % 4)
             self.core_buttons.append(button)
 
+        self.layout.addLayout(self.grid_layout)
         self.setLayout(self.layout)
 
         # Set initial core states
@@ -78,6 +97,54 @@ class CPUCoresController(QWidget):
                     button.setStyleSheet("background-color: #D32F2F; color: white;")
             except FileNotFoundError:
                 button.setStyleSheet("background-color: #4CAF50; color: white;")
+
+    def disable_range(self):
+        try:
+            # Get the range of cores to disable
+            start_core, ok1 = QInputDialog.getInt(self, "Disable Range", "Enter start core index:", 0, 0, self.num_cores - 1)
+            if not ok1:
+                return
+
+            end_core, ok2 = QInputDialog.getInt(self, "Disable Range", "Enter end core index:", start_core, start_core, self.num_cores - 1)
+            if not ok2:
+                return
+
+            # Disable the specified range
+            for core in range(start_core, end_core + 1):
+                file_path = f'/sys/devices/system/cpu/cpu{core}/online'
+                try:
+                    subprocess.run(['sudo', 'su', '-c', f'echo 0 > {file_path}'])
+                except Exception as e:
+                    print(f'An error occurred while disabling CPU {core}: {str(e)}')
+
+            self.update_core_states()
+
+        except Exception as e:
+            print(f'An error occurred: {str(e)}')
+
+    def enable_range(self):
+        try:
+            # Get the range of cores to enable
+            start_core, ok1 = QInputDialog.getInt(self, "Enable Range", "Enter start core index:", 0, 0, self.num_cores - 1)
+            if not ok1:
+                return
+
+            end_core, ok2 = QInputDialog.getInt(self, "Enable Range", "Enter end core index:", start_core, start_core, self.num_cores - 1)
+            if not ok2:
+                return
+
+            # Enable the specified range
+            for core in range(start_core, end_core + 1):
+                file_path = f'/sys/devices/system/cpu/cpu{core}/online'
+                try:
+                    subprocess.run(['sudo', 'su', '-c', f'echo 1 > {file_path}'])
+                except Exception as e:
+                    print(f'An error occurred while enabling CPU {core}: {str(e)}')
+
+            self.update_core_states()
+
+        except Exception as e:
+            print(f'An error occurred: {str(e)}')
 
     def closeEvent(self, event):
         all_cpus_enabled = True
