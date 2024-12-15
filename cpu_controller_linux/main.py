@@ -20,8 +20,8 @@ class CPUCoresController(QWidget):
         self.setWindowTitle('CPU Cores Controller')
         self.setMinimumSize(600, 600)
 
-        # Dynamically determine the number of CPU cores
-        self.num_cores = os.cpu_count() or 1
+        # Dynamically determine the number of CPU cores from the filesystem
+        self.num_cores = self.detect_cores()
 
         self.layout = QVBoxLayout()
 
@@ -72,6 +72,12 @@ class CPUCoresController(QWidget):
         # Set initial core states
         self.update_core_states()
 
+    def detect_cores(self):
+        cores = 0
+        while os.path.exists(f'/sys/devices/system/cpu/cpu{cores}'):
+            cores += 1
+        return cores
+
     def toggle_core(self, core):
         file_path = f'/sys/devices/system/cpu/cpu{core}/online'
 
@@ -87,16 +93,23 @@ class CPUCoresController(QWidget):
 
     def update_core_states(self):
         for core, button in enumerate(self.core_buttons):
+            if core == 0:
+                button.setChecked(True)
+                button.setStyleSheet("background-color: #4CAF50; color: white;")
+                continue
             file_path = f'/sys/devices/system/cpu/cpu{core}/online'
 
             try:
                 current_state = int(open(file_path).read().strip())
                 if current_state == 1:
+                    button.setChecked(True)
                     button.setStyleSheet("background-color: #4CAF50; color: white;")
                 else:
+                    button.setChecked(False)
                     button.setStyleSheet("background-color: #D32F2F; color: white;")
             except FileNotFoundError:
-                button.setStyleSheet("background-color: #4CAF50; color: white;")
+                button.setChecked(False)
+                button.setStyleSheet("background-color: #D32F2F; color: white;")
 
     def disable_range(self):
         try:
@@ -145,22 +158,6 @@ class CPUCoresController(QWidget):
 
         except Exception as e:
             print(f'An error occurred: {str(e)}')
-
-    def closeEvent(self, event):
-        all_cpus_enabled = True
-
-        for core in range(len(self.core_buttons)):
-            file_path = f'/sys/devices/system/cpu/cpu{core}/online'
-            try:
-                subprocess.run(['sudo', 'su', '-c', f'echo 1 > {file_path}'])
-            except Exception as e:
-                print(f'An error occurred: {str(e)}')
-                all_cpus_enabled = False
-
-        if all_cpus_enabled:
-            self.show_all_cpus_enabled_popup()
-
-        event.accept()
 
     def show_all_cpus_enabled_popup(self):
         msg_box = QMessageBox()

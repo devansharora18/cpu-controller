@@ -1,30 +1,47 @@
-# CPU Controller for Linux
+# CPU Cores Controller
 
-**Description:** CPU Controller for Linux is a straightforward GUI application based on PyQt6, enabling users to toggle individual CPU cores on or off in a Linux system to save battery life. This functionality serves purposes such as power management and troubleshooting.
+This is a PyQt6 application to control the state of CPU cores on a Linux system. The application allows you to enable or disable individual CPU cores or a range of CPU cores.
 
-![alt text](image.png)
+## Features
+
+- **Enable/Disable Individual Cores**: Click on the CPU core buttons to toggle their state.
+- **Enable/Disable Range of Cores**: Use the "Disable Range" and "Enable Range" buttons to specify a range of cores to disable or enable.
+- **Dynamic Core Detection**: Automatically detects the number of CPU cores on your system.
+
+## Requirements
+
+- Python 3.x
+- PyQt6
+- Root privileges (sudo access)
 
 ## Installation
 
-To install the CPU Controller for Linux, use the following pip command:
+1. Clone the repository:
+	```sh
+	git clone https://github.com/devansharora18/cpu-controller.git
+	cd cpu-controller
+	```
 
-```bash
-pip install cpu-controller-linux
-```
+2. Install the required Python packages:
+	```sh
+	pip install -r requirements.txt
+	```
 
-After installation, run the application in the terminal with:
+3. Run the application:
+	```sh
+	sudo python3 main.py
+	```
 
-```bash
-cpu-controller
-```
+## Usage
 
-## Application Interface
+- **Toggle Individual Cores**: Click on the CPU core buttons to enable or disable them.
+- **Disable Range**: Click on the "Disable Range" button and enter the start and end core indices to disable.
+- **Enable Range**: Click on the "Enable Range" button and enter the start and end core indices to enable.
 
-The application interface consists of buttons representing each CPU core, along with a labeled core number. Clicking the respective buttons toggles the cores on or off.
+## Screenshots
 
-## Enabling All Cores
+![CPU Cores Controller](image.png)
 
-Upon closing the application, a prompt will confirm whether to enable all CPU cores. Clicking "Yes" in the prompt activates all CPU cores.
+## License
 
-
-### Feel free to contribute and report issues
+This project is licensed under the MIT License.
